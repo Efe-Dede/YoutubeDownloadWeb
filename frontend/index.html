@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="YouTube, TikTok ve Instagram'dan video indirme aracı">
+    <meta name="keywords" content="video indirme, youtube downloader, tiktok downloader">
+    <title>Video İndirici | YouTube, TikTok, Instagram</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+    <div class="app-container">
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header (Moved inside for centering) -->
+            <header class="header">
+                <div class="logo">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                            fill="url(#gradient)" />
+                        <defs>
+                            <linearGradient id="gradient" x1="2" y1="2" x2="22" y2="22">
+                                <stop stop-color="#8B5CF6" />
+                                <stop offset="1" stop-color="#3B82F6" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <h1>Video İndirici</h1>
+                </div>
+                <p class="tagline">YouTube, TikTok, Instagram</p>
+            </header>
+
+            <!-- URL Input Section -->
+            <section class="input-section">
+                <div class="input-wrapper">
+                    <input type="text" id="urlInput" class="url-input" placeholder="Video URL'si veya Başlık yazın..."
+                        autocomplete="off">
+                    <button id="analyzeBtn" class="btn btn-primary">
+                        <span class="btn-text">Analiz Et</span>
+                        <span class="btn-loader hidden">
+                            <svg class="spinner" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none"
+                                    stroke-dasharray="31.4 31.4" stroke-linecap="round" />
+                            </svg>
+                        </span>
+                    </button>
+                </div>
+                <p class="input-hint">Video linki, video başlığı veya kanal adı yazabilirsiniz</p>
+            </section>
+
+            <!-- Video Info Card (Hidden by default) -->
+            <section id="videoCard" class="video-card hidden">
+                <div class="video-thumbnail-wrapper">
+                    <img id="thumbnail" src="" alt="Video Thumbnail" class="video-thumbnail">
+                    <span id="duration" class="duration-badge">00:00</span>
+                </div>
+                <div class="video-info">
+                    <h2 id="videoTitle" class="video-title">Video Başlığı</h2>
+                    <p id="uploader" class="video-uploader">Kanal Adı</p>
+
+                    <!-- Quality Selection -->
+                    <div class="form-group">
+                        <label for="qualitySelect">Kalite Seçin</label>
+                        <select id="qualitySelect" class="select-input">
+                            <option value="best">En İyi Kalite</option>
+                            <option value="1080p">1080p (Full HD)</option>
+                            <option value="720p">720p (HD)</option>
+                            <option value="480p">480p</option>
+                            <option value="360p">360p</option>
+                            <option value="audio">Sadece Ses (MP3)</option>
+                        </select>
+                    </div>
+
+                    <!-- Download Button -->
+                    <button id="downloadBtn" class="btn btn-download">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                        </svg>
+                        <span>İndir</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Progress Section (Hidden by default) -->
+            <section id="progressSection" class="progress-section hidden">
+                <div class="progress-header">
+                    <h3>İndiriliyor...</h3>
+                    <span id="progressPercent" class="progress-percent">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+                <div class="progress-details">
+                    <span id="progressSpeed">-- MB/s</span>
+                    <span id="progressEta">Kalan: --</span>
+                </div>
+            </section>
+
+            <!-- Download Complete Section (Hidden by default) -->
+            <section id="completeSection" class="complete-section hidden">
+                <div class="complete-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" stroke="url(#successGradient)" stroke-width="2" fill="none" />
+                        <path d="M8 12l2.5 2.5L16 9" stroke="url(#successGradient)" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" />
+                        <defs>
+                            <linearGradient id="successGradient" x1="4" y1="4" x2="20" y2="20">
+                                <stop stop-color="#10B981" />
+                                <stop offset="1" stop-color="#059669" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <h3>İndirme Tamamlandı!</h3>
+                <p id="downloadFilename" class="download-filename">video.mp4</p>
+                <a id="downloadLink" href="#" class="btn btn-success" download>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    Dosyayı İndir
+                </a>
+                <button id="newDownloadBtn" class="btn btn-secondary">Yeni İndirme</button>
+            </section>
+
+            <!-- Error Section (Hidden by default) -->
+            <section id="errorSection" class="error-section hidden">
+                <div class="error-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" stroke="#EF4444" stroke-width="2" fill="none" />
+                        <path d="M15 9l-6 6M9 9l6 6" stroke="#EF4444" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                </div>
+                <h3>Hata Oluştu</h3>
+                <p id="errorMessage" class="error-message">Bir hata oluştu. Lütfen tekrar deneyin.</p>
+                <button id="retryBtn" class="btn btn-secondary">Tekrar Dene</button>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Made with ❤️ | Video İndirici v1.0</p>
+        </footer>
+    </div>
+
+    <script src="/js/app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,62 @@
+# Video Downloader - Docker Compose Configuration
+# Coolify Compatible
+
+services:
+  # Backend API Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: video-downloader-backend
+    restart: unless-stopped
+    environment:
+      - PORT=${BACKEND_PORT:-8000}
+      - HOST=0.0.0.0
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
+      - DOWNLOAD_DIR=/app/downloads
+      - MAX_DOWNLOAD_SIZE_MB=${MAX_DOWNLOAD_SIZE_MB:-500}
+    volumes:
+      - downloads:/app/downloads
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    # Security: Run as non-root user (defined in Dockerfile)
+    # No external port exposure - internal only
+
+  # Frontend Nginx Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: video-downloader-frontend
+    restart: unless-stopped
+    environment:
+      - PORT=${FRONTEND_PORT:-80}
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - app-network
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+# Named volumes for persistent storage
+volumes:
+  downloads:
+    driver: local
+
+# Internal network for service communication
+networks:
+  app-network:
+    driver: bridge
