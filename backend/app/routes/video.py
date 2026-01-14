@@ -1,6 +1,6 @@
 """Video API routes."""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, Header
 from fastapi.responses import FileResponse
 import os
 
@@ -13,20 +13,35 @@ from app.models import (
     DownloadStatus
 )
 from app.services.downloader import downloader_service
+from app.config import get_settings
+
+settings = get_settings()
 
 router = APIRouter(prefix="/api", tags=["video"])
 
+async def verify_api_key(x_api_key: str = Header(...)):
+    """Verify the API key from request headers."""
+    if x_api_key != settings.api_key:
+        raise HTTPException(status_code=403, detail="Invalid API Key")
+    return x_api_key
 
-@router.post("/analyze", response_model=AnalyzeResponse)
+
+@router.post("/analyze", response_model=AnalyzeResponse, dependencies=[Depends(verify_api_key)])
 async def analyze_video(request: AnalyzeRequest):
     """Analyze a video URL and return metadata."""
+    if not downloader_service.is_url_allowed(request.url):
+        raise HTTPException(status_code=400, detail="Bu platforma izin verilmiyor. Sadece YouTube, Instagram ve TikTok desteklenmektedir.")
+    
     result = downloader_service.analyze_video(request.url)
     return AnalyzeResponse(**result)
 
 
-@router.post("/download", response_model=DownloadResponse)
+@router.post("/download", response_model=DownloadResponse, dependencies=[Depends(verify_api_key)])
 async def start_download(request: DownloadRequest):
     """Start a video download job."""
+    if not downloader_service.is_url_allowed(request.url):
+        raise HTTPException(status_code=400, detail="Bu platforma izin verilmiyor. Sadece YouTube, Instagram ve TikTok desteklenmektedir.")
+        
     try:
         job_id = downloader_service.start_download(
             url=request.url,
@@ -40,7 +55,7 @@ async def start_download(request: DownloadRequest):
         return DownloadResponse(success=False, error=str(e))
 
 
-@router.get("/progress/{job_id}", response_model=ProgressResponse)
+@router.get("/progress/{job_id}", response_model=ProgressResponse, dependencies=[Depends(verify_api_key)])
 async def get_progress(job_id: str):
     """Get the progress of a download job."""
     job = downloader_service.get_job(job_id)
@@ -59,7 +74,7 @@ async def get_progress(job_id: str):
     )
 
 
-@router.get("/file/{job_id}")
+@router.get("/file/{job_id}", dependencies=[Depends(verify_api_key)])
 async def get_file(job_id: str):
     """Download the completed file."""
     filepath = downloader_service.get_file_path(job_id)

@@ -2,8 +2,9 @@
  * Video Downloader - Frontend Application
  */
 
-// API Base URL
+// API Base URL and Key
 const API_BASE = '/api';
+const API_KEY = '[[API_KEY_PLACEHOLDER]]';
 
 // State
 let currentVideoData = null;
@@ -65,7 +66,8 @@ async function handleAnalyze() {
         const response = await fetch(`${API_BASE}/analyze`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY
             },
             body: JSON.stringify({ url })
         });
@@ -136,7 +138,8 @@ async function handleDownload() {
         const response = await fetch(`${API_BASE}/download`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY
             },
             body: JSON.stringify(requestBody)
         });
@@ -162,7 +165,11 @@ function startProgressPolling() {
 
     progressInterval = setInterval(async () => {
         try {
-            const response = await fetch(`${API_BASE}/progress/${currentJobId}`);
+            const response = await fetch(`${API_BASE}/progress/${currentJobId}`, {
+                headers: {
+                    'X-API-Key': API_KEY
+                }
+            });
             const data = await response.json();
 
             updateProgress(data);
@@ -203,8 +210,28 @@ function showComplete(data) {
 
     const filename = data.filename || 'video.mp4';
     elements.downloadFilename.textContent = filename;
-    elements.downloadLink.href = `${API_BASE}/file/${currentJobId}`;
-    elements.downloadLink.download = filename;
+
+    // Direct link doesn't support headers, so we handle download via fetch
+    elements.downloadLink.onclick = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await fetch(`${API_BASE}/file/${currentJobId}`, {
+                headers: { 'X-API-Key': API_KEY }
+            });
+            if (!response.ok) throw new Error('İndirme başarısız');
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            a.remove();
+        } catch (error) {
+            showError('Dosya indirilirken hata oluştu');
+        }
+    };
 
     elements.completeSection.classList.remove('hidden');
 }
