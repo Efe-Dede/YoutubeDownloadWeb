@@ -7,6 +7,8 @@ import subprocess
 from typing import Dict, Optional, Callable
 from datetime import datetime
 import yt_dlp
+import time
+from urllib.parse import urlparse
 
 from app.config import get_settings
 from app.models import DownloadStatus, VideoFormat
@@ -34,7 +36,38 @@ class DownloaderService:
     def __init__(self):
         self.settings = get_settings()
         self.jobs: Dict[str, DownloadJob] = {}
+        self.allowed_domains = [
+            'youtube.com', 'youtu.be', 'www.youtube.com',
+            'instagram.com', 'www.instagram.com',
+            'tiktok.com', 'www.tiktok.com', 'vm.tiktok.com'
+        ]
         self._ensure_download_dir()
+        self._start_cleanup_thread()
+    
+    def _start_cleanup_thread(self):
+        """Start a background thread for periodic cleanup."""
+        def run_cleanup():
+            while True:
+                try:
+                    self.cleanup_old_files()
+                except Exception as e:
+                    print(f"Cleanup error: {e}")
+                # Sleep for 1 minute
+                time.sleep(60)
+        
+        thread = threading.Thread(target=run_cleanup, daemon=True)
+        thread.start()
+
+    def is_url_allowed(self, url: str) -> bool:
+        """Check if the URL is in the allowed domains list."""
+        try:
+            parsed = urlparse(url)
+            domain = parsed.netloc.lower()
+            if not domain:
+                return False
+            return any(domain == d or domain.endswith('.' + d) for d in self.allowed_domains)
+        except:
+            return False
     
     def _ensure_download_dir(self):
         """Ensure download directory exists."""
@@ -52,6 +85,7 @@ class DownloaderService:
             'no_warnings': True,
             'extract_flat': False,
             'default_search': 'ytsearch',
+            'restrictfilenames': True,
         }
         
         try:
@@ -254,6 +288,7 @@ class DownloaderService:
             'quiet': True,
             'no_warnings': True,
             'merge_output_format': 'mp4' if quality != "audio" else 'mp3',
+            'restrictfilenames': True,
         }
         
         # Add audio extraction for audio-only
@@ -297,6 +332,30 @@ class DownloaderService:
             return job.filepath
         return None
 
+
+    def cleanup_old_files(self):
+        """Delete files older than the specified minutes in config."""
+        now = time.time()
+        cleanup_threshold_seconds = self.settings.cleanup_after_minutes * 60
+        
+        if not os.path.exists(self.settings.download_dir):
+            return
+
+        for filename in os.listdir(self.settings.download_dir):
+            file_path = os.path.join(self.settings.download_dir, filename)
+            
+            # Skip directories
+            if os.path.isdir(file_path):
+                continue
+                
+            # Check file age
+            file_age = now - os.path.getmtime(file_path)
+            if file_age > cleanup_threshold_seconds:
+                try:
+                    os.remove(file_path)
+                    print(f"Cleaned up old file: {filename}")
+                except Exception as e:
+                    print(f"Failed to delete {filename}: {e}")
 
 # Global service instance
 downloader_service = DownloaderService()
