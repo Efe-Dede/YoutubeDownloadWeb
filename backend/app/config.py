@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
     
     # Server settings
-    port: int = 8000
+    port: int = 49494
     host: str = "0.0.0.0"
     
     # CORS settings

@@ -29,7 +29,7 @@ RUN mkdir -p /app/downloads && chown -R appuser:appgroup /app
 USER appuser
 
 # Environment variables
-ENV PORT=8000
+ENV PORT=49494
 ENV HOST=0.0.0.0
 ENV DOWNLOAD_DIR=/app/downloads
 ENV PYTHONUNBUFFERED=1

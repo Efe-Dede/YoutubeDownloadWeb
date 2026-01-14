@@ -10,7 +10,7 @@ services:
     container_name: video-downloader-backend
     restart: unless-stopped
     environment:
-      - PORT=${BACKEND_PORT:-8000}
+      - PORT=${BACKEND_PORT:-49494}
       - HOST=0.0.0.0
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
       - DOWNLOAD_DIR=/app/downloads
@@ -20,7 +20,7 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:49494/health')"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -43,7 +43,7 @@ services:
     networks:
       - app-network
     ports:
-      - "${FRONTEND_PORT:-3000}:80"
+      - "${FRONTEND_PORT:-49595}:80"
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:80/health"]
       interval: 30s
