@@ -17,7 +17,10 @@ class Settings(BaseSettings):
     # Download settings
     download_dir: str = "/app/downloads"
     max_download_size_mb: int = 500
-    cleanup_after_hours: int = 24
+    cleanup_after_minutes: int = 3
+    
+    # Security settings
+    api_key: str = "default_api_key_change_me"
     
     # yt-dlp settings
     default_format: str = "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"
