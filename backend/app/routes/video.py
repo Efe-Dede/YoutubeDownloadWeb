@@ -14,6 +14,8 @@ from app.models import (
 )
 from app.services.downloader import downloader_service
 from app.config import get_settings
+from app.limiter import limiter
+from fastapi import Request
 
 settings = get_settings()
 
@@ -27,15 +29,16 @@ async def verify_api_key(x_api_key: str = Header(...)):
 
 
 @router.post("/analyze", response_model=AnalyzeResponse, dependencies=[Depends(verify_api_key)])
-async def analyze_video(request: AnalyzeRequest):
+@limiter.limit("10/minute")
+async def analyze_video(request: Request, body: AnalyzeRequest):
     """Analyze a video URL and return metadata."""
-    if not downloader_service.is_url_allowed(request.url):
+    if not downloader_service.is_url_allowed(body.url):
         raise HTTPException(status_code=400, detail="Bu platforma izin verilmiyor. Sadece YouTube, Instagram ve TikTok desteklenmektedir.")
     
     try:
-        result = downloader_service.analyze_video(request.url)
+        result = downloader_service.analyze_video(body.url)
         if not result.get('success'):
-            print(f"Analysis Failed for {request.url}: {result.get('error')}")
+            print(f"Analysis Failed for {body.url}: {result.get('error')}")
         return AnalyzeResponse(**result)
     except Exception as e:
         print(f"Route Error: {e}")
@@ -43,18 +46,19 @@ async def analyze_video(request: AnalyzeRequest):
 
 
 @router.post("/download", response_model=DownloadResponse, dependencies=[Depends(verify_api_key)])
-async def start_download(request: DownloadRequest):
+@limiter.limit("5/minute")
+async def start_download(request: Request, body: DownloadRequest):
     """Start a video download job."""
-    if not downloader_service.is_url_allowed(request.url):
+    if not downloader_service.is_url_allowed(body.url):
         raise HTTPException(status_code=400, detail="Bu platforma izin verilmiyor. Sadece YouTube, Instagram ve TikTok desteklenmektedir.")
         
     try:
         job_id = downloader_service.start_download(
-            url=request.url,
-            quality=request.quality or "best",
-            format_id=request.format_id,
-            start_time=request.start_time,
-            end_time=request.end_time
+            url=body.url,
+            quality=body.quality or "best",
+            format_id=body.format_id,
+            start_time=body.start_time,
+            end_time=body.end_time
         )
         return DownloadResponse(success=True, job_id=job_id)
     except Exception as e:
