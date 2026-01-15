@@ -78,7 +78,7 @@ async function handleAnalyze() {
             currentVideoData = data;
             displayVideoInfo(data);
         } else {
-            showError(data.error || 'Video analiz edilemedi');
+            showError(data.error || data.detail || 'Video analiz edilemedi');
         }
     } catch (error) {
         showError('Bağlantı hatası: ' + error.message);
@@ -150,7 +150,7 @@ async function handleDownload() {
             currentJobId = data.job_id;
             startProgressPolling();
         } else {
-            showError(data.error || 'İndirme başlatılamadı');
+            showError(data.error || data.detail || 'İndirme başlatılamadı');
         }
     } catch (error) {
         showError('Bağlantı hatası: ' + error.message);

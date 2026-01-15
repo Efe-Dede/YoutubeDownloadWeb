@@ -16,6 +16,7 @@ services:
       - DOWNLOAD_DIR=/app/downloads
       - MAX_DOWNLOAD_SIZE_MB=${MAX_DOWNLOAD_SIZE_MB:-500}
       - CLEANUP_AFTER_MINUTES=${CLEANUP_AFTER_MINUTES:-3}
+      - API_KEY=${API_KEY:-default_api_key_change_me}
     volumes:
       - downloads:/app/downloads
     networks:
