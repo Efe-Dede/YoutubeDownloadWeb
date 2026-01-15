@@ -26,14 +26,17 @@ RUN mkdir -p /var/cache/nginx /var/run /var/log/nginx && \
     chmod +x /entrypoint.sh
 
 # Environment
-ENV PORT=80
+ENV PORT=8080
 
 # Expose port
 EXPOSE ${PORT}
 
-# Health check
+# Health check - updated to use the correct port
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD wget -q --spider http://localhost:${PORT}/health || exit 1
+    CMD wget -q --spider http://localhost:8080/health || exit 1
+
+# Switch to non-root user
+USER appuser
 
 # Run entrypoint script then nginx
 ENTRYPOINT ["/entrypoint.sh"]
