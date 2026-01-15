@@ -32,8 +32,14 @@ async def analyze_video(request: AnalyzeRequest):
     if not downloader_service.is_url_allowed(request.url):
         raise HTTPException(status_code=400, detail="Bu platforma izin verilmiyor. Sadece YouTube, Instagram ve TikTok desteklenmektedir.")
     
-    result = downloader_service.analyze_video(request.url)
-    return AnalyzeResponse(**result)
+    try:
+        result = downloader_service.analyze_video(request.url)
+        if not result.get('success'):
+            print(f"Analysis Failed for {request.url}: {result.get('error')}")
+        return AnalyzeResponse(**result)
+    except Exception as e:
+        print(f"Route Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/download", response_model=DownloadResponse, dependencies=[Depends(verify_api_key)])

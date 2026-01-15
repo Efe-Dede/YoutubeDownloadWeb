@@ -20,6 +20,8 @@ RUN mkdir -p /var/cache/nginx /var/run /var/log/nginx && \
     chmod -R 755 /usr/share/nginx/html && \
     # Make nginx.pid writable
     touch /var/run/nginx.pid && \
+    # Fix potentially Windows line endings
+    sed -i 's/\r$//' /entrypoint.sh && \
     chown appuser:appgroup /var/run/nginx.pid /entrypoint.sh && \
     chmod +x /entrypoint.sh
 
