@@ -46,7 +46,7 @@ services:
     networks:
       - app-network
     ports:
-      - "${FRONTEND_PORT:-49595}:8080"
+      - "127.0.0.1:${FRONTEND_PORT:-49595}:8080"
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/health"]
       interval: 30s
